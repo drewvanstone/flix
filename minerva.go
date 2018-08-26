@@ -13,7 +13,7 @@ type Task struct {
 }
 
 type StorageService interface {
-	Create(string) error
-	Read(int) (*Task, error)
-	Delete(int) error
+	CreateTask(string) error
+	ReadTask(int) (*Task, error)
+	DeleteTask(int) error
 }

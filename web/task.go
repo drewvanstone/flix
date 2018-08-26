@@ -9,11 +9,11 @@ import (
 )
 
 type Handler struct {
-	store minerva.StorageService
+	db minerva.StorageService
 }
 
-func NewHandler(store minerva.StorageService) *Handler {
-	return &Handler{store}
+func NewHandler(db minerva.StorageService) *Handler {
+	return &Handler{db}
 }
 
 func (h *Handler) TaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +32,7 @@ func (h *Handler) TaskHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) createTask(w http.ResponseWriter, r *http.Request) {
 	task := r.URL.Query().Get("task")
-	if err := h.store.Create(task); err != nil {
+	if err := h.db.CreateTask(task); err != nil {
 		fmt.Fprintf(w, "Error creating task %s\n", task)
 		return
 	}
@@ -46,7 +46,7 @@ func (h *Handler) readTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err := h.store.Read(id)
+	task, err := h.db.ReadTask(id)
 	if err != nil {
 		fmt.Fprintf(w, "Error reading task %v\n", err)
 		return
@@ -61,7 +61,7 @@ func (h *Handler) deleteTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.store.Delete(id); err != nil {
+	if err := h.db.DeleteTask(id); err != nil {
 		fmt.Fprintf(w, "Error deleting task %d\n", id)
 		return
 	}

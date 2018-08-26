@@ -21,3 +21,16 @@ go build -o minerva ./cmd/minerva/main.go && ./minerva
 cd ./build
 docker stack rm minerva
 ```
+
+## Example Usage
+```bash
+# Create
+curl -X PUT localhost:8100/task?task="MyNewTask"
+
+# Read
+curl localhost:8100/task?id=1
+
+# Delete
+curl -X DELETE localhost:8100/task?id=1
+```
+
