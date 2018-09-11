@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"log"
 
-	"github.com/drewvanstone/minerva"
+	"github.com/drewvanstone/flix"
 
 	_ "github.com/lib/pq"
 )
@@ -14,7 +14,7 @@ type DB struct {
 }
 
 func NewDB() *DB {
-	db, err := sql.Open("postgres", "postgres://postgres:@localhost/minerva_development?sslmode=disable")
+	db, err := sql.Open("postgres", "postgres://postgres:@localhost/flix_development?sslmode=disable")
 	if err != nil {
 		log.Panic(err)
 
@@ -25,8 +25,8 @@ func NewDB() *DB {
 	return &DB{db}
 }
 
-func (db DB) CreateTask(desc string) error {
-	stmt, err := db.Prepare("INSERT INTO tasks(description) VALUES($1)")
+func (db DB) AddMovie(desc string) error {
+	stmt, err := db.Prepare("INSERT INTO movies(title) VALUES($1)")
 	if err != nil {
 		return err
 	}
@@ -37,17 +37,17 @@ func (db DB) CreateTask(desc string) error {
 	return nil
 }
 
-func (db DB) ReadTask(id int) (*minerva.Task, error) {
-	t := minerva.Task{}
-	row := db.QueryRow("SELECT * FROM tasks WHERE id = $1", id)
-	if err := row.Scan(&t.ID, &t.Description, &t.Status); err != nil {
+func (db DB) GetMovie(id int) (*flix.Movie, error) {
+	m := flix.Movie{}
+	row := db.QueryRow("SELECT * FROM movies WHERE id = $1", id)
+	if err := row.Scan(&m.ID, &m.Title, &m.UserID); err != nil {
 		return nil, err
 	}
-	return &t, nil
+	return &m, nil
 }
 
-func (db DB) DeleteTask(id int) error {
-	stmt, err := db.Prepare("DELETE FROM tasks WHERE id = $1")
+func (db DB) DeleteMovie(id int) error {
+	stmt, err := db.Prepare("DELETE FROM movies WHERE id = $1")
 	if err != nil {
 		return err
 	}

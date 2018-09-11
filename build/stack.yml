@@ -2,7 +2,7 @@ version: '3.1'
 
 services:
   db:
-    image: ${DB:-minerva-db:1.0.0}
+    image: ${DB:-myflix-db:1.0.0}
     build:
       context: .
       dockerfile: Dockerfile.db

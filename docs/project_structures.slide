@@ -1,0 +1,27 @@
+Project Structures In Go
+
+15 Sep 2018
+
+
+Drew Flower
+Software Developer, iFlix
+drew@iflix.com
+
+
+* Project Structure
+
+This is text
+
+    err := fmt.Errors("Wrong")
+
+Some more text
+
+.play main.go
+
+* Another Page
+
+.code ../minerva.go
+
+* Helpful References
+
+- https://medium.com/@benbjohnson/standard-package-layout-7cdbc8391fc1

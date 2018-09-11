@@ -10,9 +10,10 @@ import (
 // https://www.codementor.io/anshulsanghi/so-you-wanna-start-developing-web-apps-with-go-huh-handle-handler-handlefunc-eziu2go2t
 func main() {
 	db := postgres.NewDB()
-	app := web.NewHandler(db)
+	moviesHandler := web.NewHandler(db)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/task", app.TaskHandler)
+	mux.Handle("/movie", moviesHandler)
+
 	http.ListenAndServe(":8100", mux)
 }

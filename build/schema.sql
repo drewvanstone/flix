@@ -1,13 +1,10 @@
-CREATE TYPE STATUS AS ENUM ('open', 'done');
-
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    task_id BIGINT NOT NULL
+    username VARCHAR(50) UNIQUE NOT NULL
 );
 
-CREATE TABLE tasks (
+CREATE TABLE movies (
        id SERIAL PRIMARY KEY,
-       description TEXT NOT NULL,
-       status STATUS NOT NULL DEFAULT 'open'
+       title TEXT NOT NULL,
+       description TEXT NOT NULL
 );
