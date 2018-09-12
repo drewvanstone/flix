@@ -5,6 +5,5 @@ CREATE TABLE users (
 
 CREATE TABLE movies (
        id SERIAL PRIMARY KEY,
-       title TEXT NOT NULL,
-       description TEXT NOT NULL
+       title TEXT NOT NULL
 );

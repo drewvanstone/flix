@@ -1,4 +1,4 @@
-#  Minerva
+#  Flix
 This repository serves to be a reference project for Go API services.
 
 # Docker stack
@@ -7,31 +7,31 @@ This repository serves to be a reference project for Go API services.
 ## Build Postgres Container
 ```bash
 cd ./build
-docker build -t myflix-db:1.0.0 -f Dockerfile.db .
+docker build -t flix-db:1.0.0 -f Dockerfile.db .
 ```
 
 ## Build
 ```bash
 cd ./build
-docker stack deploy myflix -c stack.yml
-psql -h localhost -p 5432 -U postgres -f schema.sql myflix_development
+docker stack deploy flix -c stack.yml
+psql -h localhost -p 5432 -U postgres -f schema.sql flix_development
 ```
 
 ## Run
 ```bash
-go build -o myflix ./cmd/myflix/main.go && ./myflix
+go build -o flix ./cmd/flix/main.go && ./flix
 ```
 
 ## Shutdown
 ```bash
 cd ./build
-docker stack rm myflix
+docker stack rm flix
 ```
 
 ## Example Usage
 ```bash
 # Create
-curl -X PUT localhost:8100/movie?movie="MyNewTask"
+curl -X PUT localhost:8100/movie?title="Blade"
 
 # Read
 curl localhost:8100/movie?id=1

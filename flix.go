@@ -6,13 +6,13 @@ type User struct {
 }
 
 type Movie struct {
-	ID     int
-	Title  string
-	UserID int
+	ID    int
+	Title string
 }
 
 type StorageService interface {
 	AddMovie(string) error
 	GetMovie(int) (*Movie, error)
+	GetMovies() ([]Movie, error)
 	DeleteMovie(int) error
 }
