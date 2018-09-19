@@ -1,6 +1,6 @@
-Project Structures In Go
+Go Project Structure
 
-15 Sep 2018
+19 Sep 2018
 
 
 Drew Flower
@@ -8,20 +8,275 @@ Software Developer, iFlix
 drew@iflix.com
 
 
-* Project Structure
+* Why Does Project Structure Matter?
 
-This is text
 
-    err := fmt.Errors("Wrong")
+* Project structure is really about package design
 
-Some more text
+In Go, packages are required to live in a single directory. And by convention, the directory name should match the package name. This means directory structure and layout is very closely tied to package design.
 
-.play main.go
+Package structure dictates project structure.
 
-* Another Page
 
-.code ../minerva.go
+* Good Developer Experience
 
-* Helpful References
+Packages influence the developer experience of working in a project. Your directory structure can either serve to inform, or to obscure the purpose and flow of your code.
 
-- https://medium.com/@benbjohnson/standard-package-layout-7cdbc8391fc1
+Package names influence how your code reads as well. Consider the following very contrived example:
+
+    util.ValidateEmail(s string)
+
+vs
+
+    email.Validate()
+
+
+* Dependency Hell
+
+If your package design isn't thought out, it's very easy to wind up with circular dependencies.
+
+Circular dependencies can show up late in the development lifecycle and can be difficult to untangle.
+
+Dependencies should flow logically and uniformly through your application.
+
+
+* Many Approaches to Project Structure
+
+- Single main package
+- MVC pattern
+- Organizing by Module
+
+For simple projects, single main package is actually recommended; it keeps you from having to worry about packages.
+
+For MVC and Module approaches, they can obviously both work, but don't have strict rules about depedency flow, so cyclical dependencies can arise.
+
+
+* One Approach To Package Layout
+
+
+* Standard Package Layout
+
+There is a project pattern popularized by Ben Johnson in this blog post:
+
+.link https://medium.com/@benbjohnson/standard-package-layout-7cdbc8391fc1 Stadard Package Layout
+
+The Go Kit framework also follows a very similar pattern, as described here:
+
+.link https://gokit.io/faq/#architecture-and-design Go Kit: Architecture and Design
+
+Both implementations draw heavily from Domain Driven Design and SOLID Design Patterns.
+
+
+* How it Works
+
+Layout
+
+- All domain types go in the root package
+- Dependencies each have their own package
+- Main coordinates the dependencies
+
+The domain layer should have _no_ dependencies. It defines interfaces and types that are satisfied and imported by main and other packages.
+
+Packages must not import each other. Packages should have their dependencies injected by main, or should import them from the domain.
+
+By convention, packages should be named the same as the dependency they encapsulate.
+
+
+* How Dependencies Flow
+
+	┌───────────┐   ┌───────────┐   -
+	│   Mock    │   │   Main    │   |
+	├───────────┤   ├───────────┤   | Implementation layer
+	│           │   │           │   |
+	└────────▲──┘   └──▲────────┘   -
+	         │         │
+	     ┌───┴────┬────┴───┐
+	     │        │        │
+	┌────┴───┐    │    ┌───┴────┐   -
+	│Postgres│    │    │  HTTP  │   |
+	├────────┤    │    ├────────┤   | Package layer
+	│        │    │    │        │   |
+	└───▲─▲──┘    │    └─▲─▲────┘   -
+	    │ │       │      │ │
+	    │ │       │      │ │
+	┌───┴─┼───────┴──────┼─┴────┐
+	│     │    Domain    │      │   _
+	├─────┼──────────────┼──────┤   |
+	│     └──────────────┘      │   | Domain layer
+	│                           │   |
+	│                           │   -
+	│                           │
+	└───────────────────────────┘
+
+
+* How Dependencies Flow (cont)
+
+Main, Mock and other implementations can import all packages and domain package.
+
+Individual packages only import the dependency they encapsulate, if there is one, and the domain package.
+
+Domain cannot import any dependency.
+
+Thus imports flow in a single direction, preventing circular dependencies.
+
+* Example Flix Project
+
+
+* Flix
+Flix is a simple CRUD API that stores movies in a database, and makes them available via REST endpoints.
+
+
+* Flix Structure
+
+	flix
+	├── cmd
+	│   └── flix
+	│       └── main.go
+	├── http
+	│   ├── handler.go
+	│   ├── movie.go
+	│   ├── movies.go
+	│   └── server.go
+	├── postgres
+	│   ├── db.go
+	│   └── movie.go
+	├── README.md
+	└── flix.go
+
+
+
+* Example (domain)
+
+flix.go
+
+	package flix
+
+	type User struct {
+	        ID       int
+	        Username string
+	}
+
+	type Movie struct {
+	        ID    int
+	        Title string
+	}
+
+	type StorageService interface {
+	        AddMovie(string) error
+	        GetMovie(int) (*Movie, error)
+	        GetMovies() ([]Movie, error)
+	        DeleteMovie(int) error
+	}
+
+
+* Example (package)
+
+postgres/db.go
+
+	package postgres
+
+	type DB struct {
+	        *sql.DB
+	}
+
+	func NewDB() *DB {
+	        db, err := sql.Open("postgres", "postgres://postgres:@localhost/flix_development?sslmode=disable")
+	        ...
+	        return &DB{db}
+	}
+
+postgres/movies.go
+
+	package postgres
+
+	func (db DB) AddMovie(title string) error {...}
+	func (db DB) GetMovie(id int) (*flix.Movie, error) {...}
+	func (db DB) GetMovies() ([]flix.Movie, error) {...}
+	func (db DB) DeleteMovie(id int) error {...}
+
+
+* Example (main)
+
+cmd/flix/main.go
+
+	package main
+
+	import (
+		"log"
+		"github.com/drewvanstone/flix/http"
+		"github.com/drewvanstone/flix/postgres"
+	)
+
+	func main() {
+		// Set up all dependencies
+		db := postgres.NewDB()
+		handle := http.NewFlixHandler(db)
+
+		// Set up router
+		mux := http.NewServeMux()
+		mux.HandleFunc("/movie", handle.Movie)
+		mux.HandleFunc("/movies", handle.Movies)
+
+		// Serve routes
+		log.Fatal(http.ListenAndServe(":8080", mux))
+	}
+
+
+* Dependency Injection
+
+In our previous example, we see in main.go that we use dependency injection to pass our DB to our handler, which lives in the http (wrapper for net/http) package. How does it do that without creating a dependency?
+
+
+* Dependency Injection (cont)
+
+In http/handler.go, we create a FlixHandler object that embeds the domain's (flix) StorageService. The constructor takes the StorageService as a parameter. So the only dependency http has is on our domain package, and knows nothing of the postgres package.
+
+This pattern will be used constantly, as it's key to keeping packages loosely coupled.
+
+cmd/flix/main.go
+
+	db := postgres.NewDB()
+	handle := http.NewFlixHandler(db)
+
+http/handler.go
+
+	type FlixHandler struct {
+		store flix.StorageService
+	}
+	func NewFlixHandler(store flix.StorageService) *FlixHandler {
+		return &FlixHandler{store}
+	}
+
+
+* Benefits
+
+Following this project pattern has a little more overhead than other approaches. It requires a domain package that may feel unfamiliar, but there are a number of benefits:
+
+- The domain package makes it very easy to see what the application actually does. It's a great entry point into the system.
+- There is a defined, repeatable pattern to isolating dependencies.
+- By isolating dependencies, you get the ability to mock services for free. This makes testing much easier.
+
+
+* References
+
+.link https://medium.com/@benbjohnson/standard-package-layout-7cdbc8391fc1 Standard Package Layout
+.link http://idiomaticgo.com/post/best-practice/server-project-layout/ Server Project Layout
+.link https://gokit.io/faq/#architecture-and-design Go Kit: Architecture And Design
+.link https://github.com/golang-standards/project-layout Example Project Layout
+.link https://www.youtube.com/watch?v=cmkKxNN7cs4 Video: Writing Beautiful Packages in Go
+.link https://www.youtube.com/watch?v=oL6JBUk6tj0 Video: How Do You Structure Your Go Apps (Gophercon 2018)
+.link https://www.youtube.com/watch?v=HHqv3_rUr88 Video: Idiomatic Design Patterns in Go (Gophercon 2018)
+.link https://www.youtube.com/watch?v=MzTcsI6tn-0&t=2s Video: Go Best Practices
+
+
+* Example Repos
+
+.link https://github.com/marcusolsson/goddd
+.link https://github.com/segmentio/stats
+.link https://github.com/pilosa/pilosa
+.link https://github.com/movio/kasper
+.link https://github.com/anacrolix/torrent
+.link https://github.com/boltdb/bolt
+.link https://github.com/sirupsen/logrus
+
+

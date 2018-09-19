@@ -14,11 +14,10 @@ type DB struct {
 func NewDB() *DB {
 	db, err := sql.Open("postgres", "postgres://postgres:@localhost/flix_development?sslmode=disable")
 	if err != nil {
-		log.Panic(err)
-
+		log.Fatalf("Could not connect to database. Got error %v\n", err)
 	}
 	if err = db.Ping(); err != nil {
-		log.Panic(err)
+		log.Fatalf("Could not ping database. Got error %v\n", err)
 	}
 	return &DB{db}
 }

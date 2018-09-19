@@ -1,6 +1,8 @@
 package postgres
 
-import "github.com/drewvanstone/flix"
+import (
+	"github.com/drewvanstone/flix"
+)
 
 func (db DB) AddMovie(title string) error {
 	stmt, err := db.Prepare("INSERT INTO movies(title) VALUES($1)")

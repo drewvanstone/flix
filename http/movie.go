@@ -21,7 +21,7 @@ func (h *FlixHandler) Movie(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *FlixHandler) addMovie(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Query().Get("title")
+	title := r.FormValue("title")
 	if err := h.store.AddMovie(title); err != nil {
 		fmt.Fprintf(w, "Error creating movie %h. Got error: %v\n", title, err)
 		return
@@ -30,22 +30,22 @@ func (h *FlixHandler) addMovie(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *FlixHandler) getMovie(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	id, err := strconv.Atoi(r.FormValue("id"))
 	if err != nil {
-		fmt.Fprintf(w, "Something went wrong")
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
 	movie, err := h.store.GetMovie(id)
 	if err != nil {
-		fmt.Fprintf(w, "Error reading movie %v\n", err)
+		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
-	fmt.Fprintf(w, "Read movie %v\n", *movie)
+	fmt.Fprintf(w, "Movie ID: %d, Title: %s \n", movie.ID, movie.Title)
 }
 
 func (h *FlixHandler) deleteMovie(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	id, err := strconv.Atoi(r.FormValue("id"))
 	if err != nil {
 		fmt.Fprintf(w, "Something went wrong")
 		return

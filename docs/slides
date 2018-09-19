@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-present -orighost localhost
+present -notes -orighost localhost

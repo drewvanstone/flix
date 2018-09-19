@@ -1,42 +1,24 @@
 #  Flix
 This repository serves to be a reference project for Go API services.
 
-# Docker stack
-`docker stack` is a built-in docker command that deploys a 'stack', or group of containers that operate together. For local development, this can be very useful.
-
-## Build Postgres Container
-```bash
-cd ./build
-docker build -t flix-db:1.0.0 -f Dockerfile.db .
-```
-
-## Build
-```bash
-cd ./build
-docker stack deploy flix -c stack.yml
-psql -h localhost -p 5432 -U postgres -f schema.sql flix_development
-```
-
 ## Run
 ```bash
+docker-compose -f build/docker-compose.yml up --build --force-recreate
 go build -o flix ./cmd/flix/main.go && ./flix
-```
-
-## Shutdown
-```bash
-cd ./build
-docker stack rm flix
 ```
 
 ## Example Usage
 ```bash
 # Create
-curl -X PUT localhost:8100/movie?title="Blade"
-
-# Read
-curl localhost:8100/movie?id=1
+curl -X PUT localhost:8080/movie?title="Blade"
 
 # Delete
-curl -X DELETE localhost:8100/movie?id=1
+curl -X DELETE localhost:8080/movie?id=1
+
+# Get single movie
+curl -s -X GET localhost:8080/movie?id=1 | jq .
+
+# Get all movies
+curl -s -X GET localhost:8080/movies | jq .
 ```
 
